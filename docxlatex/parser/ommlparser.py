@@ -43,17 +43,61 @@ class OMMLParser:
 
     def parse_t(self, root: Element):
         symbol_map = {
+            # Existing special symbols
             "≜": "\\triangleq",
             "≝": "\\stackrel{\\tiny def}{=}",
             "≞": "\\stackrel{\\tiny m}{=}",
+            # Greek letters (lowercase)
+            "α": "\\alpha", "β": "\\beta", "γ": "\\gamma", "δ": "\\delta",
+            "ε": "\\varepsilon", "ζ": "\\zeta", "η": "\\eta", "θ": "\\theta",
+            "ι": "\\iota", "κ": "\\kappa", "λ": "\\lambda", "μ": "\\mu",
+            "ν": "\\nu", "ξ": "\\xi", "π": "\\pi", "ρ": "\\rho",
+            "σ": "\\sigma", "τ": "\\tau", "υ": "\\upsilon", "φ": "\\varphi",
+            "χ": "\\chi", "ψ": "\\psi", "ω": "\\omega",
+            # Greek letters (uppercase)
+            "Γ": "\\Gamma", "Δ": "\\Delta", "Θ": "\\Theta", "Λ": "\\Lambda",
+            "Ξ": "\\Xi", "Π": "\\Pi", "Σ": "\\Sigma", "Υ": "\\Upsilon",
+            "Φ": "\\Phi", "Ψ": "\\Psi", "Ω": "\\Omega",
+            # Mathematical operators
+            "∂": "\\partial", "∇": "\\nabla", "∞": "\\infty",
+            "∑": "\\sum", "∏": "\\prod",
+            # Relations
+            "≈": "\\approx", "≠": "\\neq", "≡": "\\equiv",
+            "≤": "\\leq", "≥": "\\geq", "≪": "\\ll", "≫": "\\gg",
+            "∈": "\\in", "∉": "\\notin", "⊂": "\\subset", "⊃": "\\supset",
+            "⊆": "\\subseteq", "⊇": "\\supseteq", "∝": "\\propto",
+            "∼": "\\sim", "≅": "\\cong",
+            # Arrows
+            "↑": "\\uparrow", "↓": "\\downarrow",
+            # Set operations
+            "∪": "\\cup", "∩": "\\cap", "∅": "\\emptyset",
+            "∀": "\\forall", "∃": "\\exists",
+            # Logic
+            "∧": "\\wedge", "∨": "\\vee", "¬": "\\neg",
+            # Other common symbols
+            "±": "\\pm", "∓": "\\mp", "×": "\\times", "÷": "\\div",
+            "·": "\\cdot", "•": "\\bullet", "°": "^\\circ",
+            "ℏ": "\\hbar", "ℓ": "\\ell",
         }
-        text = root.text.split()
-        if not text:
+
+        # Get the text content
+        if not root.text:
             return " "
-        for i, t in enumerate(text):
-            if t in symbol_map:
-                text[i] = symbol_map[t]
-        return " ".join(text)
+
+        text = root.text
+
+        # Replace each Unicode symbol with its LaTeX command
+        # Add space after LaTeX commands to prevent them from merging with following text
+        for unicode_char, latex_cmd in symbol_map.items():
+            if unicode_char in text:
+                # Add space after LaTeX command if it's followed by a letter
+                text = text.replace(unicode_char, latex_cmd + " ")
+
+        # Clean up: replace multiple spaces with single space
+        import re
+        text = re.sub(r'\s+', ' ', text)
+
+        return text
 
     def parse_acc(self, root: Element) -> str:
         character_map = {
